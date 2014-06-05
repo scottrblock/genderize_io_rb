@@ -2,6 +2,7 @@ require "http2" unless ::Kernel.const_defined?(:Http2)
 require "cgi" unless ::Kernel.const_defined?(:CGI)
 require "json" unless ::Kernel.const_defined?(:JSON)
 require "string-cases" unless ::Kernel.const_defined?(:StringCases)
+require "uri" unless ::Kernel.const_defined?(:URI)
 
 class GenderizeIoRb
   attr_reader :cache_db
@@ -58,7 +59,8 @@ class GenderizeIoRb
     end
     
     unless res
-      http_res = @http.get("?name=#{CGI.escape(name)}")
+      params = URI.encode(args.map{|k,v| "#{k}=#{v}"}.join("&"))
+      http_res = @http.get("?name=#{CGI.escape(name)}&#{params}")
       json_res = JSON.parse(http_res.body)
       
       raise GenderizeIoRb::Errors::NameNotFound, "Name was not found on Genderize.io: '#{name}'." unless json_res["gender"]
